@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.11.4
+  sdk: ">=3.10.4 <4.0.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -34,6 +34,14 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  get: ^4.7.3
+
+  tnm_kennel:
+    git:
+      url: git@github.com:tnm-it/tnm-kennel.git
+      ref: main
+  flutter_native_splash: ^2.4.7
+  firebase_core: ^4.12.1
 
 dev_dependencies:
   flutter_test:
@@ -61,6 +69,8 @@ flutter:
   # assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
+  assets:
+    - images/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -87,3 +97,7 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+flutter_native_splash:
+  color: "#FFFFFF"
+  fullscreen: true
+  image: assets/images/app_icon.png
