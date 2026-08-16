@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<typography>
+    <texts>
+        <text size="48">h1</text>
+        <text size="40">h2</text>
+        <text size="32">h3</text>
+        <text size="28">h4</text>
+        <text size="20">h5</text>
+        <text size="16">title</text>
+        <text size="14">body</text>
+        <text size="12">description</text> 
+        <text size="8">Caption</text>
+    </texts>
+    <weights>
+        <weight size="900">black</weight>
+        <weight size="800">extra_bold</weight>
+        <weight size="700">bold</weight>
+        <weight size="600">semi_bold</weight>
+        <weight size="500">medium</weight>
+        <weight size="400">regular</weight>
+        <weight size="300">light</weight>
+        <weight size="200">extra_light</weight>
+        <weight size="100">thin</weight>
+    </weights>
+
+    <fonts>
+        <font is_default="true">Roboto</font>
+        <font>Inter</font>
+    </fonts>
+</typography>

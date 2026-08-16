@@ -9,4 +9,6 @@ void main() {
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   runApp(const App());
+
+  FlutterNativeSplash.remove();
 }

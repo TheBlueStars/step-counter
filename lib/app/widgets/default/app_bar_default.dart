@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../generated/colors.gen.dart';
+import '../../../generated/text_styles.gen.dart';
+import '../scale_tap_widget.dart';
+
 class AppBarDefault extends StatelessWidget {
   final String title;
   final Widget? action;
@@ -42,17 +46,16 @@ class AppBarDefault extends StatelessWidget {
           Expanded(
             child:
                 middle ??
-                AlpTexts.h4(title).bold
-                    .updateStyle(color: ColorName.neutralBlack)
-                    .copyWith(textAlign: TextAlign.center, maxLines: 1),
+                Text(
+                  title,
+                  style: TextStyles.h4.bold.copyWith(
+                    color: ColorName.neutralBlack,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                ),
           ),
-          Container(
-            width: subWidgetSize ?? Get.width * 0.25,
-            alignment: AppStore.languageService.isRTL
-                ? Alignment.centerLeft
-                : Alignment.centerRight,
-            child: action,
-          ),
+          Container(width: subWidgetSize ?? Get.width * 0.25, child: action),
         ],
       ),
     );
@@ -61,15 +64,11 @@ class AppBarDefault extends StatelessWidget {
   Widget _buildLeadingWidget(BuildContext context) {
     return (ModalRoute.of(context)?.impliesAppBarDismissal ?? false)
         ? ScaleTapWidget(
-            onTap:
-                leadingCallBack ??
-                () async {
-                  await AppStore.onBackWithInterBack();
-                },
+            onTap: leadingCallBack,
             child: Icon(
               Icons.arrow_back_ios,
               color: backIconColor ?? ColorName.onColorText,
-              size: 18.w,
+              size: 18,
             ),
           )
         : const SizedBox();

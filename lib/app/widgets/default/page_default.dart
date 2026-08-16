@@ -1,10 +1,7 @@
-import 'package:alphalogy_get_x_wrapper/alphalogy_get_x_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../generated/assets.gen.dart';
 import '../../../generated/colors.gen.dart';
-import '../../extensions/app_app_store_extension.dart';
 
 class PageDefault extends StatelessWidget {
   final Widget body;
@@ -42,8 +39,6 @@ class PageDefault extends StatelessWidget {
         if (canBack?.call() == false) return;
 
         if (!isShowInterBack) return Get.back();
-
-        // await AppStore.onBackWithInterBack();
       },
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
@@ -61,14 +56,17 @@ class PageDefault extends StatelessWidget {
                   gradient ??
                   (backgroundColor != null
                       ? null
-                      : ColorName.gradientBackgroundPrimary.linearGradient(
-                          begin: .topCenter,
-                          end: .bottomCenter,
+                      : LinearGradient(
+                          colors: ColorName.gradientBackgroundPrimary.colors,
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
                         )),
               image: !useBackgroundImage
                   ? null
-                  : DecorationImage(
-                      image: Assets.images.imgSplash.provider(),
+                  : const DecorationImage(
+                      image: AssetImage(
+                        'assets/images/img_background_splash.png',
+                      ),
                       fit: BoxFit.fill,
                     ),
             ),

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary_100">#FE7C3E</color>
+    <color name="primary_50">#B9472F</color>
+    <color name="primary_20">#FFE7E1</color>
+
+    <color name="secondary_100">#6AA2FF</color>
+    <color name="secondary_50">#2D6FDE</color>
+    <color name="secondary_20">#F7FAFF</color>
+
+    <color name="background">#FFFFFF</color>
+    <color name="tags_background">#FFFCF7</color>
+    <color name="border_background">#F1F2F4</color>
+    <color name="ads_background">#FFFFFF</color>
+
+    <color name="main_text">#FFFFFF</color>
+    <color name="primary_text">#F86440</color>
+    <color name="disabled_text">#D1D5DB</color>
+    <color name="link_text">#3B82F6</color>
+    <color name="note_hint_text">#BBBBBB</color>
+    <color name="on_color_text">#000000</color>
+
+    <color name="button_background">#FE7C3E</color>
+    <color name="button_disabled">#8B8B8B</color>
+    <color name="button_border">#E5E7EB</color>
+
+    <color name="input_placeholder">#F3F4F6</color>
+    <color name="input_border">#E5E7EB</color>
+
+    <color name="success_status">#22C55E</color>
+    <color name="warning_status">#FB923C</color>
+    <color name="error_status">#EF4444</color>
+    <color name="info_status">#3B82F6</color>
+
+    <color name="neutral_light_gray">#F3F4F6</color>
+    <color name="neutral_gray">#9CA3AF</color>
+    <color name="neutral_dark_gray">#4B5563</color>
+    <color name="neutral_white">#FFFFFF</color>
+    <color name="neutral_black">#000000</color>
+    <colors name="extra">
+        <color name="extra_1">#FFE2D3</color>
+        <color name="extra_2">#FFC7C7</color>
+        <color name="extra_3">#D3EDFF</color>
+        <color name="extra_4">#FFDCA6</color>
+        <color name="extra_5">#B7FDB7</color>
+        <color name="extra_6">#F3FDF3</color>
+        <color name="extra_7">#FFECEB</color>
+        <color name="extra_8">#0047C2</color>
+        <color name="extra_9">#B60000</color>
+    </colors>
+
+    <colors name="water">
+        <color name="fill">#3B82F6</color>
+        <color name="body">#CAECF4</color>
+        <color name="cap">#4DBFD9</color>
+        <color name="highlight">#6AA2FF</color>
+    </colors>
+
+    <colors name="gradient_background_primary">
+        <color name="color_1">#F3F6FF</color>
+        <color name="color_2">#FFFAF3</color>
+        <color name="color_3">#F6F8FF</color>
+    </colors>
+    <colors name="gradient_ecg_sweep">
+        <color name="color_1">#33FF7171</color>
+        <color name="color_2">#00FF7171</color>
+    </colors>
+    <colors name="gradient_chart_heart">
+        <color name="color_1">#FF0909</color>
+        <color name="color_2">#FFDADA</color>
+    </colors>
+    <colors name="gradient_border_red">
+        <color name="color_1">#EF4444</color>
+        <color name="color_2">#FFFFFF</color>
+        <color name="color_3">#EF4444</color>
+    </colors>
+    <colors name="gradient_border_orange">
+        <color name="color_1">#FE7C3E</color>
+        <color name="color_2">#FFFFFF</color>
+        <color name="color_3">#FE7C3E</color>
+    </colors>
+    <colors name="gradient_border_blue">
+        <color name="color_1">#3B82F6</color>
+        <color name="color_2">#FFFFFF</color>
+        <color name="color_3">#3B82F6</color>
+    </colors>
+    <colors name="gradient_border_status">
+        <color name="color_1">#22C55E</color>
+        <color name="color_2">#FFFFFF</color>
+        <color name="color_3">#22C55E</color>
+    </colors>
+
+    <colors name="gradient_progress_primary">
+        <color name="color_1">#FFAE88</color>
+        <color name="color_2">#FE7C3E</color>
+    </colors>
+    <colors name="gradient_background_color_card_red">
+        <color name="color_1">#FFE0DD</color>
+        <color name="color_2">#FFF5F5</color>
+        <color name="color_3">#FFE0DD</color>
+    </colors>
+
+    <colors name="gradient_background_color_card_blue">
+        <color name="color_1">#E2F2FF</color>
+        <color name="color_2">#F7FAFF</color>
+        <color name="color_3">#CAE5FF</color>
+    </colors>
+
+    <colors name="gradient_background_color_card_yellow">
+        <color name="color_1">#FFF3E1</color>
+        <color name="color_2">#FFF7EE</color>
+        <color name="color_3">#FFF3E1</color>
+    </colors>
+
+    <colors name="gradient_background_color_card_green">
+        <color name="color_1">#ECFFE4</color>
+        <color name="color_2">#F1FFF1</color>
+        <color name="color_3">#ECFFE4</color>
+    </colors>
+
+    <colors name="gradient_border_color_card_blue">
+        <color name="color_1">#3B82F6</color>
+        <color name="color_2">#FFFFFF</color>
+        <color name="color_3">#3B82F6</color>
+    </colors>
+
+    <color name="ecg_grid_line_color">#F4DADA</color>
+</resources>
