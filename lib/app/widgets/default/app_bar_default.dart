@@ -37,7 +37,7 @@ class AppBarDefault extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Container(
-            width: subWidgetSize ?? Get.width * 0.25,
+            width: subWidgetSize ?? Get.width * 0.1,
             // alignment: AppStore.languageService.isRTL
             //     ? Alignment.centerRight
             //     : Alignment.centerLeft,
@@ -55,7 +55,7 @@ class AppBarDefault extends StatelessWidget {
                   maxLines: 1,
                 ),
           ),
-          Container(width: subWidgetSize ?? Get.width * 0.25, child: action),
+          Container(width: subWidgetSize ?? Get.width * 0.1, child: action),
         ],
       ),
     );
@@ -64,7 +64,7 @@ class AppBarDefault extends StatelessWidget {
   Widget _buildLeadingWidget(BuildContext context) {
     return (ModalRoute.of(context)?.impliesAppBarDismissal ?? false)
         ? ScaleTapWidget(
-            onTap: leadingCallBack,
+            onTap: Get.back,
             child: Icon(
               Icons.arrow_back_ios,
               color: backIconColor ?? ColorName.onColorText,

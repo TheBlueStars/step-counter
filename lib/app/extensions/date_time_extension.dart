@@ -36,11 +36,28 @@ extension DateTimeExtension on DateTime {
     _ => "Dec",
   };
 
+  String get MMMM => switch (month) {
+    1 => "January",
+    2 => "February",
+    3 => "March",
+    4 => "April",
+    5 => "May",
+    6 => "June",
+    7 => "July",
+    8 => "August",
+    9 => "September",
+    10 => "October",
+    11 => "November",
+    _ => "December",
+  };
+
   String get yyyy => "$year";
 
   String get MMMyyyy => "$MMM $yyyy";
 
   String get MMM_EEEdd => "$MMM, $EEE $dd";
+
+  String get MMMMdd => "$MMMM $dd";
 
   String get weekLabel {
     final start = startOfWeek;

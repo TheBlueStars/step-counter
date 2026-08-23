@@ -12,6 +12,7 @@ class HomeView extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
+    final controller = this.controller;
     return PageDefault(
       appBar: AppBarHome(longStreak: 1),
       body: SingleChildScrollView(
@@ -30,7 +31,7 @@ class HomeView extends GetView<HomeController> {
               onTapEditGoal: () {},
               onTapReset: () {},
               onTapEditStep: () {},
-              onTapStats: () {},
+              onTapStats: controller.goToStatistical,
               onTapPlay: () {},
             ),
           ],

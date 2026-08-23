@@ -104,6 +104,7 @@ class DatePeriodWidget extends StatelessWidget {
                     child: TnmText.title(dateLabel).semiBold.copyWith(
                       maxLines: 1,
                       textAlign: TextAlign.center,
+                      color: ColorName.neutralBlack
                     ),
                   ),
                   _buildChevron(onTap: onNext, isPrevious: false),

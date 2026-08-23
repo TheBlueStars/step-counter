@@ -1,4 +1,5 @@
 import 'package:project/app/extensions/date_time_extension.dart';
+import 'package:project/app/extensions/number_extension.dart';
 import 'package:project/app/utils/time_utils.dart';
 
 enum PeriodType {
@@ -87,4 +88,48 @@ enum PeriodType {
     PeriodType.month => 6,
     PeriodType.year => 16,
   };
+
+  int barCount(DateTime date) => switch (this) {
+    PeriodType.day => 24,
+    PeriodType.week => 7,
+    PeriodType.month => DateTime(date.year, date.month + 1, 0).day,
+    PeriodType.year => 12,
+  };
+
+  int currentIndexAt(DateTime now) => switch (this) {
+    PeriodType.day => now.hour,
+    PeriodType.week => now.weekday - 1,
+    PeriodType.month => now.day - 1,
+    PeriodType.year => now.month - 1,
+  };
+
+  String barLabel(DateTime date, int index) => switch (this) {
+    PeriodType.day => "${index == 0 ? 24 : index}h",
+    PeriodType.week => date.startOfWeek.add(Duration(days: index)).EEE,
+    PeriodType.month => "${index + 1}",
+    PeriodType.year => DateTime(date.year, index + 1, 1).MMM,
+  };
+
+  String barTooltip(DateTime date, int index) => switch (this) {
+    PeriodType.day => index.hourRangeLabel,
+    PeriodType.week => date.startOfWeek.add(Duration(days: index)).MMM_EEEdd,
+    PeriodType.month => DateTime(date.year, date.month, index + 1).MMMMdd,
+    PeriodType.year => DateTime(date.year, index + 1, 1).MMMM,
+  };
+
+  String dayLabelAt(DateTime date, int index) {
+    if (index < 0) {
+      return "No records yet";
+    }
+
+    return switch (this) {
+      PeriodType.day => index.hourRangeLabel,
+      PeriodType.week => date.startOfWeek.add(Duration(days: index)).MMM_EEEdd,
+      PeriodType.month => DateTime(date.year, date.month, index + 1).MMMMdd,
+      PeriodType.year => "",
+    };
+  }
+
+  String monthLabelAt(DateTime date, int index) =>
+      index < 0 ? "" : DateTime(date.year, index + 1).MMMM;
 }
