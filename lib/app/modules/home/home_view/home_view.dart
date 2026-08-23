@@ -5,6 +5,7 @@ import 'package:project/app/widgets/calendar/calendar_widget.dart';
 import 'package:project/app/widgets/default/page_default.dart';
 
 import '../home_controller/home_controller.dart';
+import 'components/step_tracker_card.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
@@ -22,9 +23,19 @@ class HomeView extends GetView<HomeController> {
               progressChangedDay: ValueNotifier(DateTime.now()),
               selectDay: ValueNotifier(DateTime.now()),
             ),
+            SizedBox(height: 12),
+            StepTrackerCard(
+              steps: 1000,
+              stepGoal: 10000,
+              onTapEditGoal: () {},
+              onTapReset: () {},
+              onTapEditStep: () {},
+              onTapStats: () {},
+              onTapPlay: () {},
+            ),
           ],
         ),
-      )
+      ),
     );
   }
 }

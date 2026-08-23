@@ -288,9 +288,11 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                 onTap: _previousWeek,
               ),
               Expanded(
-                child: TnmText.body(
-                  range,
-                ).semiBold.copyWith(maxLines: 1, textAlign: TextAlign.center),
+                child: TnmText.body(range).semiBold.copyWith(
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
+                  color: ColorName.neutralBlack,
+                ),
               ),
               _buildArrow(
                 icon: Icon(Icons.chevron_right, color: ColorName.primary100),
@@ -435,8 +437,9 @@ class _CalendarWidgetState extends State<CalendarWidget> {
 
                 SizedBox(height: height * 0.04),
 
-                TnmText.description(day.EEE)
-                    .copyWith(color: descriptionTextColor, maxLines: 1),
+                TnmText.description(
+                  day.EEE,
+                ).copyWith(color: descriptionTextColor, maxLines: 1),
 
                 const Spacer(),
 
@@ -455,9 +458,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
                     duration: _selectDuration,
                     curve: Curves.easeOut,
                     builder: (context, color, child) {
-                        return TnmText.title(
-                        "${day.day}",
-                      ).copyWith(color: color);
+                      return TnmText.title("${day.day}").copyWith(color: color);
                     },
                   ),
                 ),

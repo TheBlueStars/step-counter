@@ -1,4 +1,4 @@
-class TimeUtils {
+  class TimeUtils {
   static DateTime absoluteNow = DateTime.now();
 
   static DateTime now = DateTime(
