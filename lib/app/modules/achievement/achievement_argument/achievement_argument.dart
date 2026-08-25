@@ -1,0 +1,3 @@
+class AchievementArgument {
+  const AchievementArgument();
+}

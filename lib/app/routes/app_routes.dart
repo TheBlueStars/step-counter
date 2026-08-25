@@ -8,6 +8,7 @@ abstract class Routes {
   static const HOME = _Paths.HOME;
   static const STATISTICAL = _Paths.STATISTICAL;
   static const SETTINGS = _Paths.SETTINGS;
+  static const ACHIEVEMENT = _Paths.ACHIEVEMENT;
 }
 
 abstract class _Paths {
@@ -18,4 +19,5 @@ abstract class _Paths {
   static const HOME = '/home';
   static const STATISTICAL = '/statistical';
   static const SETTINGS = '/settings';
+  static const ACHIEVEMENT = '/achievement';
 }

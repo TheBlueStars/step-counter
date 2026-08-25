@@ -12,6 +12,9 @@ import '../modules/splash/splash_binding/splash_binding.dart';
 import '../modules/splash/splash_view/splash_view.dart';
 import '../modules/statistical/statistical_binding/statistical_binding.dart';
 import '../modules/statistical/statistical_view/statistical_view.dart';
+import '../modules/achievement/achievement_binding/achievement_binding.dart';
+import '../modules/achievement/achievement_view/achievement_view.dart';
+
 
 part 'app_routes.dart';
 
@@ -51,5 +54,10 @@ abstract class AppPages {
       page: () => const SettingsView(),
       binding: SettingsBinding(),
     ),
-  ];
+      GetPage(
+      name: Routes.ACHIEVEMENT,
+      page: () => const AchievementView(),
+      binding: AchievementBinding(),
+    ),
+];
 }

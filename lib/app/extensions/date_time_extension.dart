@@ -11,6 +11,10 @@ extension DateTimeExtension on DateTime {
 
   String get dd => day.toString().padLeft(2, '0');
 
+  String get mm => month.toString().padLeft(2, '0');
+
+  String get yyyy_MM_dd => "$year-$mm-$dd";
+
   String get EEE => switch (weekday) {
     DateTime.monday => "Mon",
     DateTime.tuesday => "Tue",

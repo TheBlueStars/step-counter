@@ -45,6 +45,7 @@ dependencies:
   gradient_borders: ^1.0.4
   fl_chart: ^1.2.0
   intl: ^0.20.2
+  lottie: ^3.5.1
 
 dev_dependencies:
   flutter_test:
@@ -70,6 +71,11 @@ flutter:
     - assets/images/
     - assets/images/settings/
     - assets/images/achievements/
+    - assets/images/achievements/daily_steps/
+    - assets/images/achievements/streaks/
+    - assets/images/achievements/goal_completed/
+    - assets/images/achievements/total_distances/
+    - assets/images/achievements/total_steps/
     - assets/images/heart_rate/
     - assets/images/blood_pressure/
     - assets/images/rating/

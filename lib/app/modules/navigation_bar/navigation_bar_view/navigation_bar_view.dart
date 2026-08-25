@@ -23,7 +23,7 @@ class NavigationBarView extends GetView<NavigationBarController> {
           return switch (p1) {
             .home => Routes.HOME,
             .statistical => Routes.STATISTICAL,
-            .achievement => Routes.STATISTICAL,
+            .achievement => Routes.ACHIEVEMENT,
             .settings => Routes.STATISTICAL,
           };
         },
