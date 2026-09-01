@@ -264,7 +264,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
     final showReturn = !isToday || !isCurrentWeek;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      spacing: 24,
+      spacing: 16,
       children: [
         Visibility(
           visible: false,

@@ -58,6 +58,23 @@ class StepCounterMethodCallHandler(
 
             "getDailySteps" -> result.success(dailySteps())
 
+            "getDayGoals" -> result.success(
+                preferences.getAllDayGoals().mapKeys { (dayStart, _) -> dayStart.toString() },
+            )
+
+            "setDayGoal" -> {
+                val dayStart = call.longArg("dayStartMs")
+                val goal = call.intArg("goal")
+                if (dayStart == null || goal == null) {
+                    result.error("INVALID_ARGS", "dayStartMs/goal bị thiếu", null)
+                    return
+                }
+
+                preferences.setDayGoal(dayStart, goal)
+                notifyDataChanged()
+                result.success(true)
+            }
+
             "getTodaySteps" -> result.success(preferences.todaySteps())
 
             "getLifetimeSteps" -> result.success(preferences.lifetimeSteps)
@@ -70,8 +87,12 @@ class StepCounterMethodCallHandler(
                     return
                 }
 
+                val previous = preferences.getHourSteps(hourStart)
                 preferences.setHourSteps(hourStart, steps)
-                preferences.recomputeDay(StepTimeUtils.dayStartMillis(hourStart))
+                preferences.addDaySteps(
+                    StepTimeUtils.dayStartMillis(hourStart),
+                    steps - previous,
+                )
                 notifyDataChanged()
                 result.success(true)
             }

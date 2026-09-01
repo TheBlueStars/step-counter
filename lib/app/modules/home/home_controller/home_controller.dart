@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:project/app/data/models/chart_bar.dart';
+import 'package:project/app/data/models/enums/activity_metrics.dart';
+import 'package:project/app/data/models/enums/period_type.dart';
+import 'package:project/app/extensions/chart_bar_extension.dart';
 import 'package:project/app/extensions/date_time_extension.dart';
+import 'package:project/app/modules/home/home_view/components/edit_step_sheet_body.dart';
 import 'package:project/app/routes/app_pages.dart';
 import 'package:project/app/services/step_record_service.dart';
+import 'package:project/app/widgets/default/bottom_sheet_default.dart';
 
 class HomeController extends GetxController {
+  static const int _daysPerWeek = 7;
+  static const int _lastHourOfDay = 23;
+
   final StepRecordService _service = StepRecordService.to;
 
   final ValueNotifier<DateTime?> progressChangedDay = ValueNotifier(null);
@@ -15,9 +24,10 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+
     _stepWorker = debounce(
       _service.selectedSteps,
-      (_) => progressChangedDay.value = _service.selectedDate.value,
+      (_) => _notifyDayProgress(_service.selectedDate.value),
       time: const Duration(seconds: 1),
     );
   }
@@ -58,6 +68,56 @@ class HomeController extends GetxController {
 
   void onDaySelected(DateTime day) => _service.selectDay(day);
 
+  /// ValueNotifier chỉ báo khi giá trị đổi, mà hai DateTime cùng ngày lại bằng
+  /// nhau, nên phải gán null trước để lịch chắc chắn nạp lại tiến độ ngày đó.
+  void _notifyDayProgress(DateTime day) {
+    progressChangedDay.value = null;
+    progressChangedDay.value = day.startOfDay;
+  }
+
+  List<ChartBar> get weekBars {
+    final start = selectedDate.startOfWeek;
+    final today = DateTime.now().startOfDay;
+    final values = _service.weekSteps;
+
+    return List.generate(values.length, (i) {
+      final day = start.add(Duration(days: i));
+      final steps = values[i];
+      final goal = _service.goalOfDay(day);
+
+      return ChartBar(
+        value: steps.toDouble(),
+        label: day.EEE,
+        tooltip: day.MMM_EEEdd,
+        isCurrent: day == today,
+        isDone: goal > 0 && steps >= goal,
+        isFuture: day.isAfter(today),
+      );
+    });
+  }
+
+  int get weekTotalSteps =>
+      _service.weekSteps.fold<int>(0, (sum, steps) => sum + steps);
+
+  int get weekChartMax {
+    final start = selectedDate.startOfWeek;
+    final weekGoal = List.generate(
+      _daysPerWeek,
+      (i) => _service.goalOfDay(start.add(Duration(days: i))),
+    ).fold<int>(0, (maxGoal, dayGoal) => dayGoal > maxGoal ? dayGoal : maxGoal);
+
+    final peak = weekBars.peak;
+    final max = peak > weekGoal ? peak : weekGoal.toDouble();
+    return max <= 0 ? 1 : max.ceil();
+  }
+
+  double get weekAverage => weekBars.averageFor(PeriodType.week, selectedDate);
+
+  String get weekRangeLabel => selectedDate.weekLabel;
+
+  String get weekTotalLabel =>
+      "${ActivityMetrics.steps.format(weekTotalSteps.toDouble())} steps";
+
   Future<void> onTapPlay() async {
     if (!_service.hasSensor.value) {
       _showMessage("Device dont have sensor");
@@ -71,21 +131,11 @@ class HomeController extends GetxController {
   }
 
   Future<void> onTapReset() async {
-    final confirmed = await Get.dialog<bool>(
-      AlertDialog(
-        title: const Text("Reset"),
-        content: Text("Clear ${selectedDate.yyyy_MM_dd}?"),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(result: false),
-            child: const Text("Huỷ"),
-          ),
-          TextButton(
-            onPressed: () => Get.back(result: true),
-            child: const Text("Xoá"),
-          ),
-        ],
-      ),
+    final confirmed = await BottomSheetDefault.showConfirm(
+      title: "Reset steps",
+      message: "Clear all steps of ${selectedDate.yyyy_MM_dd}?",
+      primaryText: "Clear",
+      secondaryText: "Cancel",
     );
 
     if (confirmed != true) {
@@ -93,14 +143,16 @@ class HomeController extends GetxController {
     }
 
     await _service.clearDay(selectedDate);
-    progressChangedDay.value = selectedDate;
+    _notifyDayProgress(selectedDate);
   }
 
   Future<void> onTapEditGoal() async {
-    final goal = await _askNumber(
-      title: "Mục tiêu mỗi ngày",
+    final goal = await BottomSheetDefault.showNumberInput(
+      title: "Edit goal",
+      fieldTitle: "Daily goal",
       initialValue: stepGoal,
-      suffix: "bước",
+      suffixText: "steps",
+      minValue: 1,
     );
 
     if (goal == null) {
@@ -108,60 +160,70 @@ class HomeController extends GetxController {
     }
 
     await _service.updateGoal(goal);
-    progressChangedDay.value = selectedDate;
+    _notifyDayProgress(selectedDate);
   }
 
   Future<void> onTapEditStep() async {
     final now = DateTime.now();
-    final hourStart = DateTime(now.year, now.month, now.day, now.hour);
-    final steps = await _askNumber(
-      title: "Số bước giờ hiện tại (${now.hour}:00)",
-      initialValue: _service.hourlyStepsForDay(now)[now.hour],
-      suffix: "bước",
+    final draft = EditStepDraft(
+      day: selectedDate,
+      hour: selectedDate.isToday ? now.hour : _lastHourOfDay,
     );
 
-    if (steps == null) {
+    final input = TextEditingController(text: _stepsOfDraft(draft));
+    final canSave = ValueNotifier<bool>(true);
+    void onChanged() => canSave.value = int.tryParse(input.text.trim()) != null;
+    input.addListener(onChanged);
+
+    EditStepAction? action;
+    while (true) {
+      onChanged();
+      action = await BottomSheetDefault.show<EditStepAction>(
+        title: "Edit Steps",
+        body: EditStepSheetBody(draft: draft, controller: input),
+        primaryText: "Save",
+        primaryEnabled: canSave,
+        onPrimary: () => Get.back(result: EditStepAction.save),
+      );
+
+      if (action == EditStepAction.pickDate) {
+        await draft.pickDate();
+        input.text = _stepsOfDraft(draft);
+        continue;
+      }
+
+      if (action == EditStepAction.pickTime) {
+        await draft.pickTime();
+        input.text = _stepsOfDraft(draft);
+        continue;
+      }
+
+      break;
+    }
+
+    input.removeListener(onChanged);
+    final steps = int.tryParse(input.text.trim());
+    BottomSheetDefault.disposeLater(() {
+      input.dispose();
+      canSave.dispose();
+    });
+
+    if (action != EditStepAction.save || steps == null) {
       return;
     }
 
-    await _service.setHourSteps(hourStart, steps);
-    progressChangedDay.value = selectedDate;
+    await _service.setHourSteps(draft.hourStart, steps);
+    _service.selectDay(draft.day);
+    _notifyDayProgress(draft.day);
   }
+
+  String _stepsOfDraft(EditStepDraft draft) =>
+      _service.hourlyStepsForDay(draft.day)[draft.hour].toString();
 
   void goToStatistical() => Get.toNamed(Routes.STATISTICAL);
 
-  Future<int?> _askNumber({
-    required String title,
-    required int initialValue,
-    required String suffix,
-  }) {
-    final textController = TextEditingController(text: initialValue.toString());
-
-    return Get.dialog<int>(
-      AlertDialog(
-        title: Text(title),
-        content: TextField(
-          controller: textController,
-          autofocus: true,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(suffixText: suffix),
-        ),
-        actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text("Huỷ")),
-          TextButton(
-            onPressed: () {
-              final value = int.tryParse(textController.text.trim());
-              Get.back(result: value != null && value >= 0 ? value : null);
-            },
-            child: const Text("Lưu"),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showMessage(String message) => Get.snackbar(
-    "Đếm bước chân",
+    "Step counter",
     message,
     snackPosition: SnackPosition.BOTTOM,
   );

@@ -48,7 +48,34 @@ class StatisticalController extends GetxController {
 
   double get _weightKg => _service.weightKg.value;
 
-  int get _dailyGoal => _service.stepGoal.value;
+  List<int> get _barGoals {
+    final date = _selectedDate.value;
+
+    return switch (period) {
+      PeriodType.day => List.filled(24, _service.goalOfDay(date)),
+      PeriodType.week => List.generate(
+        7,
+        (i) => _service.goalOfDay(date.startOfWeek.add(Duration(days: i))),
+      ),
+      PeriodType.month => List.generate(
+        DateTime(date.year, date.month + 1, 0).day,
+        (i) => _service.goalOfDay(DateTime(date.year, date.month, i + 1)),
+      ),
+      PeriodType.year => List.generate(12, (month) {
+        final days = DateTime(date.year, month + 2, 0).day;
+        var total = 0;
+        for (var day = 1; day <= days; day++) {
+          total += _service.goalOfDay(DateTime(date.year, month + 1, day));
+        }
+
+        return total;
+      }),
+    };
+  }
+
+  int get _axisGoal => period.isDay
+      ? _goalTotal
+      : _barGoals.fold<int>(0, (max, goal) => goal > max ? goal : max);
 
   int get _longestStreak {
     final (from, to) = period.range(_selectedDate.value);
@@ -85,30 +112,14 @@ class StatisticalController extends GetxController {
     });
   }
 
-  int get _goalTotal {
-    final date = _selectedDate.value;
-    return switch (period) {
-      PeriodType.day => _dailyGoal,
-      PeriodType.week => _dailyGoal * 7,
-      PeriodType.month =>
-        _dailyGoal * DateTime(date.year, date.month + 1, 0).day,
-      PeriodType.year => _dailyGoal * 365,
-    };
-  }
-
-  int get _barGoal {
-    final steps = _barSteps;
-    if (period.isDay || steps.isEmpty) {
-      return _goalTotal;
-    }
-
-    return (_goalTotal / steps.length).round();
-  }
+  int get _goalTotal => period.isDay
+      ? _service.goalOfDay(_selectedDate.value)
+      : _barGoals.fold<int>(0, (sum, goal) => sum + goal);
 
   List<ChartBar> get chartBars {
     final date = _selectedDate.value;
     final isSteps = selectedMetric == ActivityMetrics.steps;
-    final goal = _barGoal;
+    final goals = _barGoals;
     final steps = _barSteps;
     final currentIndex = isAtCurrent
         ? period.currentIndexAt(DateTime.now())
@@ -122,7 +133,7 @@ class StatisticalController extends GetxController {
         label: period.barLabel(date, i),
         tooltip: period.barTooltip(date, i),
         isCurrent: currentIndex == i,
-        isDone: isSteps && goal > 0 && rawSteps >= goal,
+        isDone: isSteps && goals[i] > 0 && rawSteps >= goals[i],
         isFuture: isFuture,
       );
     });
@@ -131,7 +142,7 @@ class StatisticalController extends GetxController {
   double get chartAverage => chartBars.averageFor(period, _selectedDate.value);
 
   int get totalStep {
-    final goal = _metricValue(_barGoal);
+    final goal = _metricValue(_axisGoal);
     final peak = chartBars.peak;
     final max = peak > goal ? peak : goal;
     return max <= 0 ? 1 : max.ceil();
