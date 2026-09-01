@@ -6,6 +6,7 @@ import 'package:project/app/widgets/default/page_default.dart';
 
 import '../home_controller/home_controller.dart';
 import 'components/step_tracker_card.dart';
+import 'components/week_step_chart.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
@@ -14,7 +15,9 @@ class HomeView extends GetView<HomeController> {
   Widget build(BuildContext context) {
     final controller = this.controller;
     return PageDefault(
-      appBar: Obx(() => AppBarHome(longStreak: controller.streakDays)),
+      appBar: Obx(
+        () => AppBarHome(longStreak: controller.streakDays),
+      ).paddingSymmetric(vertical: 16),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -40,8 +43,20 @@ class HomeView extends GetView<HomeController> {
                 onTapPlay: controller.onTapPlay,
               ),
             ),
+            SizedBox(height: 16),
+            Obx(
+              () => WeekStepChart(
+                bars: controller.weekBars,
+                totalStep: controller.weekChartMax,
+                average: controller.weekAverage,
+                totalLabel: controller.weekTotalLabel,
+                rangeLabel: controller.weekRangeLabel,
+                onTapMore: controller.goToStatistical,
+              ),
+            ),
+            SizedBox(height: 16),
           ],
-        ),
+        ).paddingSymmetric(horizontal: 16),
       ),
     );
   }

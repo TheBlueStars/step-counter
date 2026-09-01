@@ -98,13 +98,26 @@ class StepCounterPreferences(context: Context) {
     }
 
 
+    fun getDayGoal(dayStart: Long): Int = prefs.getInt(KEY_GOAL + dayStart, notifGoal)
+
+    fun setDayGoal(dayStart: Long, goal: Int) {
+        prefs.edit { putInt(KEY_GOAL + dayStart, goal.coerceAtLeast(1)) }
+    }
+
+    fun getAllDayGoals(): Map<Long, Int> = buildMap {
+        for ((key, value) in prefs.all) {
+            if (!key.startsWith(KEY_GOAL) || value !is Int) continue
+            val dayStart = key.removePrefix(KEY_GOAL).toLongOrNull() ?: continue
+            put(dayStart, value)
+        }
+    }
+
     fun getDaySteps(dayStart: Long): Int = prefs.getInt(KEY_DAY + dayStart, 0)
 
     fun setDaySteps(dayStart: Long, steps: Int) {
         prefs.edit { putInt(KEY_DAY + dayStart, steps.coerceAtLeast(0)) }
     }
 
-    /** Cộng thêm [delta] bước vào ngày [dayStart] và vào tổng tích luỹ. */
     fun addDaySteps(dayStart: Long, delta: Int) {
         if (delta == 0) return
 
@@ -144,8 +157,6 @@ class StepCounterPreferences(context: Context) {
         setDaySteps(dayStart, 0)
         resetBaseline()
     }
-
-    // ------------------------------------------------------------------ huy hiệu
 
     fun getMedals(): Map<String, Long> = buildMap {
         for ((key, value) in prefs.all) {
@@ -188,6 +199,7 @@ class StepCounterPreferences(context: Context) {
         const val KEY_STEPS = "steps_"
         const val KEY_ACTIVE = "active_"
         const val KEY_DAY = "day_"
+        const val KEY_GOAL = "goal_"
         const val KEY_MEDAL = "medal_"
         const val RETENTION_HOURS = 24 * 30
         const val DEFAULT_GOAL = 10000

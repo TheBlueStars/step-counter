@@ -30,15 +30,20 @@ class StepRecordService extends GetxService {
 
   final RxInt selectedSteps = 0.obs;
 
+  final RxList<int> weekSteps = <int>[].obs;
+
   final RxInt streakDays = 0.obs;
 
   final RxInt longestStreakDays = 0.obs;
 
   final RxInt dataVersion = 0.obs;
 
+  final Map<DateTime, int> _dayGoals = {};
   final Map<DateTime, int> _hourSteps = {};
   final Map<DateTime, int> _hourActiveMinutes = {};
   final Map<DateTime, int> _daySteps = {};
+
+  int _defaultGoal = defaultStepGoal;
 
   StreamSubscription<StepSnapshot>? _subscription;
   Timer? _dayRolloverTimer;
@@ -122,6 +127,11 @@ class StepRecordService extends GetxService {
       ..clear()
       ..addAll(days);
 
+    final goals = await _channel.getDayGoals();
+    _dayGoals
+      ..clear()
+      ..addAll(goals);
+
     lifetimeSteps.value = await _channel.getLifetimeSteps();
     isPaused.value = await _channel.isPaused();
     isTracking.value =
@@ -131,15 +141,23 @@ class StepRecordService extends GetxService {
   }
 
   void _refreshDerived() {
-    selectedSteps.value = stepsOfDay(selectedDate.value);
-    streakDays.value = currentStreakUntil();
+    final day = selectedDate.value;
+    final weekStart = day.startOfWeek;
+
+    selectedSteps.value = stepsOfDay(day);
+    stepGoal.value = goalOfDay(day);
+    streakDays.value = currentStreakUntil(day);
     longestStreakDays.value = longestStreak();
+    weekSteps.value = dailyStepsInRange(
+      weekStart,
+      weekStart.add(const Duration(days: 6)),
+    );
   }
 
   Future<void> _loadConfig() async {
     final config = await _channel.getConfig();
     final goal = config["goal"]?.toInt() ?? 0;
-    stepGoal.value = goal > 0 ? goal : defaultStepGoal;
+    _defaultGoal = goal > 0 ? goal : defaultStepGoal;
     heightCm.value = config["heightCm"]?.toDouble() ?? heightCm.value;
     weightKg.value = config["weightKg"]?.toDouble() ?? weightKg.value;
   }
@@ -172,12 +190,16 @@ class StepRecordService extends GetxService {
 
   int stepsOfDay(DateTime day) => _daySteps[day.startOfDay] ?? 0;
 
+  /// Mục tiêu của một ngày cụ thể; ngày chưa đặt riêng thì dùng mục tiêu mặc định.
+  int goalOfDay(DateTime day) => _dayGoals[day.startOfDay] ?? _defaultGoal;
+
   double progressOfDay(DateTime day) {
-    if (stepGoal.value <= 0) {
+    final goal = goalOfDay(day);
+    if (goal <= 0) {
       return 0;
     }
 
-    return (stepsOfDay(day) / stepGoal.value).clamp(0.0, 1.0);
+    return (stepsOfDay(day) / goal).clamp(0.0, 1.0);
   }
 
   List<int> hourlyStepsForDay(DateTime day) {
@@ -218,8 +240,10 @@ class StepRecordService extends GetxService {
     return steps;
   }
 
-  bool isStreakDay(DateTime day) =>
-      stepGoal.value > 0 && stepsOfDay(day) >= stepGoal.value;
+  bool isStreakDay(DateTime day) {
+    final goal = goalOfDay(day);
+    return goal > 0 && stepsOfDay(day) >= goal;
+  }
 
   int currentStreakUntil([DateTime? day]) {
     var cursor = (day ?? DateTime.now()).startOfDay;
@@ -267,7 +291,7 @@ class StepRecordService extends GetxService {
 
     return {
       for (final entry in _daySteps.entries)
-        if (stepGoal.value > 0 && entry.value >= stepGoal.value)
+        if (isStreakDay(entry.key))
           if ((start == null || !entry.key.isBefore(start)) &&
               (end == null || !entry.key.isAfter(end)))
             entry.key,
@@ -290,16 +314,19 @@ class StepRecordService extends GetxService {
 
   WalkingPace get pace => WalkingPace.average;
 
-  Future<void> updateGoal(int goal) async {
+  Future<void> updateGoalForDay(DateTime day, int goal) async {
     if (goal <= 0) {
       return;
     }
 
-    await _channel.setConfig(goal: goal);
-    stepGoal.value = goal;
+    await _channel.setDayGoal(day, goal);
+    _dayGoals[day.startOfDay] = goal;
     _refreshDerived();
     dataVersion.value++;
   }
+
+  Future<void> updateGoal(int goal) =>
+      updateGoalForDay(selectedDate.value, goal);
 
   Future<void> updateProfile({double? height, double? weight}) async {
     await _channel.setConfig(

@@ -17,6 +17,7 @@ import com.example.project.preferences.StepCounterPreferences
 import com.example.project.sensor.StepObserver
 import com.example.project.sensor.StepSensorHub
 import com.example.project.utils.StepMetricsUtils
+import com.example.project.utils.StepTimeUtils
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -81,7 +82,7 @@ class StepCounterForegroundService : Service() {
     }
 
     private fun buildNotification(steps: Int): Notification {
-        val goal = preferences.notifGoal
+        val goal = preferences.getDayGoal(StepTimeUtils.dayStartMillis(System.currentTimeMillis()))
         val percent = if (goal > 0) (steps * 100 / goal).coerceIn(0, 100) else 0
         val calories = StepMetricsUtils.calories(
             steps = steps,
@@ -132,7 +133,6 @@ class StepCounterForegroundService : Service() {
 
         const val ACTION_REFRESH = "com.example.project.action.REFRESH"
 
-        /** Cập nhật lại thông báo khi dữ liệu đổi (đổi mục tiêu, sửa số bước...). */
         fun refresh(context: Context) {
             if (!StepCounterPreferences(context).isServiceEnabled) return
 

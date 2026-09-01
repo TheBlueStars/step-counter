@@ -76,6 +76,40 @@ class StepCounterChannel {
     return result;
   }
 
+  Future<Map<DateTime, int>> getDayGoals() async {
+    final raw = await _invoke<Map<Object?, Object?>>(
+      "getDayGoals",
+      fallback: const {},
+    );
+
+    final result = <DateTime, int>{};
+    raw.forEach((key, value) {
+      final millis = int.tryParse("$key");
+      if (millis == null) {
+        return;
+      }
+
+      final day = DateTime.fromMillisecondsSinceEpoch(millis);
+      result[DateTime(day.year, day.month, day.day)] =
+          (value as num?)?.toInt() ?? 0;
+    });
+
+    return result;
+  }
+
+  Future<bool> setDayGoal(DateTime day, int goal) => _invoke(
+    "setDayGoal",
+    arguments: {
+      "dayStartMs": DateTime(
+        day.year,
+        day.month,
+        day.day,
+      ).millisecondsSinceEpoch,
+      "goal": goal,
+    },
+    fallback: false,
+  );
+
   Future<bool> setHourSteps(DateTime hourStart, int steps) => _invoke(
     "setHourSteps",
     arguments: {
