@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:get/get.dart';
 import 'package:project/app/data/models/chart_bar.dart';
 import 'package:project/app/data/models/enums/activity_metrics.dart';
@@ -8,13 +6,11 @@ import 'package:project/app/data/models/summary_card_data.dart';
 import 'package:project/app/data/models/summary_statistical.dart';
 import 'package:project/app/extensions/chart_bar_extension.dart';
 import 'package:project/app/extensions/date_time_extension.dart';
+import 'package:project/app/services/step_record_service.dart';
 import 'package:project/generated/assets.gen.dart';
 
 class StatisticalController extends GetxController {
-  static const double _heightCm = 170;
-  static const double _weightKg = 65;
-  static const int _dailyGoal = 10000;
-  static const int _longestStreak = 5;
+  final StepRecordService _service = StepRecordService.to;
 
   final Rx<ActivityMetrics> _selectedMetric = Rx(ActivityMetrics.steps);
   final Rx<PeriodType> _period = Rx(PeriodType.day);
@@ -48,29 +44,37 @@ class StatisticalController extends GetxController {
 
   void resetToCurrent() => _selectedDate.value = DateTime.now().startOfDay;
 
-  List<int> get _mockSteps {
-    final maxPerBar = switch (period) {
-      PeriodType.day => 900,
-      PeriodType.week => 11000,
-      PeriodType.month => 11000,
-      PeriodType.year => 260000,
-    };
+  double get _heightCm => _service.heightCm.value;
 
-    return List.generate(
-      period.barCount(_selectedDate.value),
-      (i) => _mockValue(i, maxPerBar),
-    );
+  double get _weightKg => _service.weightKg.value;
+
+  int get _dailyGoal => _service.stepGoal.value;
+
+  int get _longestStreak {
+    final (from, to) = period.range(_selectedDate.value);
+    return _service.longestStreak(from: from, to: to);
   }
 
-  int _mockValue(int index, int max) {
-    final wave = (math.sin((index + 1) * 0.9) + 1) / 2;
-    final noise = ((index * 2654435761) % 1000) / 1000;
-    final factor = (wave * 0.65 + noise * 0.35).clamp(0.05, 1.0);
-    return (max * factor).round();
+  List<int> get _rawSteps {
+    _service.dataVersion.value;
+
+    final date = _selectedDate.value;
+    return switch (period) {
+      PeriodType.day => _service.hourlyStepsForDay(date),
+      PeriodType.week => _service.dailyStepsInRange(
+        date.startOfWeek,
+        date.endOfWeek,
+      ),
+      PeriodType.month => _service.dailyStepsInRange(
+        DateTime(date.year, date.month),
+        DateTime(date.year, date.month + 1, 0),
+      ),
+      PeriodType.year => _service.monthlyStepsForYear(date.year),
+    };
   }
 
   List<int> get _barSteps {
-    final steps = _mockSteps;
+    final steps = _rawSteps;
     final currentIndex = isAtCurrent
         ? period.currentIndexAt(DateTime.now())
         : null;
@@ -133,11 +137,8 @@ class StatisticalController extends GetxController {
     return max <= 0 ? 1 : max.ceil();
   }
 
-  double _metricValue(int steps) => selectedMetric.value(
-    steps,
-    heightCm: _heightCm,
-    weightKg: _weightKg,
-  );
+  double _metricValue(int steps) =>
+      selectedMetric.value(steps, heightCm: _heightCm, weightKg: _weightKg);
 
   int get _totalSteps => _barSteps.fold<int>(0, (sum, steps) => sum + steps);
 

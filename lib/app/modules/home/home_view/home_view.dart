@@ -14,25 +14,31 @@ class HomeView extends GetView<HomeController> {
   Widget build(BuildContext context) {
     final controller = this.controller;
     return PageDefault(
-      appBar: AppBarHome(longStreak: 1),
+      appBar: Obx(() => AppBarHome(longStreak: controller.streakDays)),
       body: SingleChildScrollView(
         child: Column(
           children: [
             CalendarWidget(
-              progressOf: (day) => Future.value(0.5),
-              onDaySelected: (day) => print(day),
-              progressChangedDay: ValueNotifier(DateTime.now()),
-              selectDay: ValueNotifier(DateTime.now()),
+              progressOf: controller.progressOf,
+              onDaySelected: controller.onDaySelected,
+              progressChangedDay: controller.progressChangedDay,
+              selectDay: controller.selectDayRequest,
             ),
             SizedBox(height: 12),
-            StepTrackerCard(
-              steps: 1000,
-              stepGoal: 10000,
-              onTapEditGoal: () {},
-              onTapReset: () {},
-              onTapEditStep: () {},
-              onTapStats: controller.goToStatistical,
-              onTapPlay: () {},
+            Obx(
+              () => StepTrackerCard(
+                steps: controller.steps,
+                stepGoal: controller.stepGoal,
+                calories: controller.calories,
+                distance: controller.distanceKm,
+                elapsedTime: controller.activeTime,
+                isTracking: controller.isTracking,
+                onTapEditGoal: controller.onTapEditGoal,
+                onTapReset: controller.onTapReset,
+                onTapEditStep: controller.onTapEditStep,
+                onTapStats: controller.goToStatistical,
+                onTapPlay: controller.onTapPlay,
+              ),
             ),
           ],
         ),

@@ -1,13 +1,18 @@
 package com.example.project.preferences
 
-
-
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import com.example.project.constants.StepCounterConstants
 import com.example.project.utils.StepTimeUtils
 
+/**
+ * Toàn bộ dữ liệu bước chân được lưu bằng SharedPreferences:
+ *  - steps_<hourStart>  : số bước trong 1 giờ (giữ 30 ngày gần nhất)
+ *  - active_<hourStart> : số phút có hoạt động trong 1 giờ
+ *  - day_<dayStart>     : tổng số bước 1 ngày (không xoá, dùng cho streak/thống kê dài hạn)
+ *  - medal_<name>       : thời điểm mở khoá huy hiệu
+ */
 class StepCounterPreferences(context: Context) {
 
     private val prefs: SharedPreferences =
@@ -23,6 +28,10 @@ class StepCounterPreferences(context: Context) {
         get() = prefs.getLong(KEY_LAST_ACTIVE_MINUTE, -1L)
         set(value) = prefs.edit { putLong(KEY_LAST_ACTIVE_MINUTE, value) }
 
+    var isServiceEnabled: Boolean
+        get() = prefs.getBoolean(KEY_SERVICE_ENABLED, false)
+        set(value) = prefs.edit { putBoolean(KEY_SERVICE_ENABLED, value) }
+
     var isPaused: Boolean
         get() = prefs.getBoolean(KEY_PAUSED, false)
         set(value) = prefs.edit { putBoolean(KEY_PAUSED, value) }
@@ -32,7 +41,7 @@ class StepCounterPreferences(context: Context) {
         set(value) = prefs.edit { putLong(KEY_PAUSED_AT, value) }
 
     var notifGoal: Int
-        get() = prefs.getInt(KEY_NOTIF_GOAL, 0)
+        get() = prefs.getInt(KEY_NOTIF_GOAL, DEFAULT_GOAL)
         set(value) = prefs.edit { putInt(KEY_NOTIF_GOAL, value) }
 
     var heightCm: Float
@@ -51,13 +60,16 @@ class StepCounterPreferences(context: Context) {
         get() = prefs.getFloat(KEY_PACE_MET, StepCounterConstants.DEFAULT_PACE_MET)
         set(value) = prefs.edit { putFloat(KEY_PACE_MET, value) }
 
-    /** Quên mốc thô cũ → lần đọc sensor kế tiếp sẽ không sinh delta. */
+    var lifetimeSteps: Int
+        get() = prefs.getInt(KEY_LIFETIME_STEPS, 0)
+        set(value) = prefs.edit { putInt(KEY_LIFETIME_STEPS, value.coerceAtLeast(0)) }
+
     fun resetBaseline() = prefs.edit { remove(KEY_LAST_RAW) }
 
     fun getHourSteps(hourStart: Long): Int = prefs.getInt(KEY_STEPS + hourStart, 0)
 
     fun setHourSteps(hourStart: Long, steps: Int) {
-        prefs.edit { putInt(KEY_STEPS + hourStart, steps) }
+        prefs.edit { putInt(KEY_STEPS + hourStart, steps.coerceAtLeast(0)) }
         if (hourStart == lastPrunedHour) return
 
         lastPrunedHour = hourStart
@@ -67,7 +79,7 @@ class StepCounterPreferences(context: Context) {
     fun getHourActiveMinutes(hourStart: Long): Int = prefs.getInt(KEY_ACTIVE + hourStart, 0)
 
     fun setHourActiveMinutes(hourStart: Long, minutes: Int) {
-        prefs.edit { putInt(KEY_ACTIVE + hourStart, minutes) }
+        prefs.edit { putInt(KEY_ACTIVE + hourStart, minutes.coerceAtLeast(0)) }
     }
 
     fun removeHour(hourStart: Long) {
@@ -85,16 +97,70 @@ class StepCounterPreferences(context: Context) {
         }
     }
 
-    fun todaySteps(timestampMillis: Long = System.currentTimeMillis()): Int {
-        val dayStart = StepTimeUtils.dayStartMillis(timestampMillis)
-        val dayEnd = dayStart + StepCounterConstants.DAY_MILLIS
-        return getAllHourSteps()
-            .filterKeys { it in dayStart until dayEnd }
-            .values
-            .sum()
+
+    fun getDaySteps(dayStart: Long): Int = prefs.getInt(KEY_DAY + dayStart, 0)
+
+    fun setDaySteps(dayStart: Long, steps: Int) {
+        prefs.edit { putInt(KEY_DAY + dayStart, steps.coerceAtLeast(0)) }
     }
 
-    /** Giữ lại 30 ngày gần nhất, xoá phần cũ hơn để prefs không phình. */
+    /** Cộng thêm [delta] bước vào ngày [dayStart] và vào tổng tích luỹ. */
+    fun addDaySteps(dayStart: Long, delta: Int) {
+        if (delta == 0) return
+
+        setDaySteps(dayStart, getDaySteps(dayStart) + delta)
+        lifetimeSteps += delta
+    }
+
+    fun getAllDaySteps(): Map<Long, Int> = buildMap {
+        for ((key, value) in prefs.all) {
+            if (!key.startsWith(KEY_DAY) || value !is Int) continue
+            val dayStart = key.removePrefix(KEY_DAY).toLongOrNull() ?: continue
+            put(dayStart, value)
+        }
+    }
+
+    fun todaySteps(timestampMillis: Long = System.currentTimeMillis()): Int =
+        getDaySteps(StepTimeUtils.dayStartMillis(timestampMillis))
+
+    fun recomputeDay(dayStart: Long): Int {
+        var total = 0
+        for (hour in 0 until StepCounterConstants.HOURS_PER_DAY) {
+            total += getHourSteps(dayStart + hour * StepCounterConstants.HOUR_MILLIS)
+        }
+
+        val previous = getDaySteps(dayStart)
+        setDaySteps(dayStart, total)
+        lifetimeSteps += total - previous
+        return total
+    }
+
+    fun clearDay(dayStart: Long) {
+        for (hour in 0 until StepCounterConstants.HOURS_PER_DAY) {
+            removeHour(dayStart + hour * StepCounterConstants.HOUR_MILLIS)
+        }
+
+        lifetimeSteps -= getDaySteps(dayStart)
+        setDaySteps(dayStart, 0)
+        resetBaseline()
+    }
+
+    // ------------------------------------------------------------------ huy hiệu
+
+    fun getMedals(): Map<String, Long> = buildMap {
+        for ((key, value) in prefs.all) {
+            if (!key.startsWith(KEY_MEDAL) || value !is Long) continue
+            put(key.removePrefix(KEY_MEDAL), value)
+        }
+    }
+
+    fun unlockMedal(name: String, atMillis: Long): Boolean {
+        if (prefs.contains(KEY_MEDAL + name)) return false
+
+        prefs.edit { putLong(KEY_MEDAL + name, atMillis) }
+        return true
+    }
+
     private fun pruneOldHours(currentHourStart: Long) {
         val cutoff = currentHourStart - RETENTION_HOURS * StepCounterConstants.HOUR_MILLIS
         prefs.edit {
@@ -110,6 +176,7 @@ class StepCounterPreferences(context: Context) {
         const val PREFS_NAME = "step_counter_prefs"
         const val KEY_LAST_RAW = "last_raw"
         const val KEY_LAST_ACTIVE_MINUTE = "last_active_minute"
+        const val KEY_SERVICE_ENABLED = "service_enabled"
         const val KEY_PAUSED = "paused"
         const val KEY_PAUSED_AT = "paused_at"
         const val KEY_NOTIF_GOAL = "notif_goal"
@@ -117,8 +184,12 @@ class StepCounterPreferences(context: Context) {
         const val KEY_WEIGHT_KG = "profile_weight_kg"
         const val KEY_PACE_SPEED_MPS = "profile_pace_speed_mps"
         const val KEY_PACE_MET = "profile_pace_met"
+        const val KEY_LIFETIME_STEPS = "lifetime_steps"
         const val KEY_STEPS = "steps_"
         const val KEY_ACTIVE = "active_"
+        const val KEY_DAY = "day_"
+        const val KEY_MEDAL = "medal_"
         const val RETENTION_HOURS = 24 * 30
+        const val DEFAULT_GOAL = 10000
     }
 }
