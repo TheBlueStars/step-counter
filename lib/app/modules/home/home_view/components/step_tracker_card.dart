@@ -79,7 +79,7 @@ class StepTrackerCard extends StatelessWidget {
       child: Stack(
         children: [
           Center(
-            child: ScaleTap     Widget(onTap: onTapChart, child: _buildGauge()),
+            child: ScaleTapWidget(onTap: onTapChart, child: _buildGauge()),
           ),
           PositionedDirectional(
             top: 0,
