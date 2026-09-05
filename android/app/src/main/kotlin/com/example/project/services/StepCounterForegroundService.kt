@@ -18,6 +18,7 @@ import com.example.project.sensor.StepObserver
 import com.example.project.sensor.StepSensorHub
 import com.example.project.utils.StepMetricsUtils
 import com.example.project.utils.StepTimeUtils
+import com.example.project.widget.StepWidgetUpdater
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -33,6 +34,7 @@ class StepCounterForegroundService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startAsForeground(preferences.todaySteps())
+        StepWidgetUpdater.update(applicationContext, force = true)
 
         if (intent?.action == ACTION_REFRESH) {
             return START_STICKY
@@ -79,6 +81,7 @@ class StepCounterForegroundService : Service() {
 
     private fun updateNotification(steps: Int) {
         notificationManager.notify(NOTIFICATION_ID, buildNotification(steps))
+        StepWidgetUpdater.update(applicationContext)
     }
 
     private fun buildNotification(steps: Int): Notification {

@@ -35,6 +35,28 @@
             android:exported="false"
             android:foregroundServiceType="health"
             android:stopWithTask="false" />
+        <receiver
+            android:name=".widget.step_widget_4_2.StepAppWidgetReceiver"
+            android:exported="false"
+            android:label="@string/widget_step_counter_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/step_app_widget_info" />
+        </receiver>
+        <receiver
+            android:name=".widget.step_widget_2_2.StepSquareAppWidgetReceiver"
+            android:exported="false"
+            android:label="@string/widget_step_counter_square_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/step_square_app_widget_info" />
+        </receiver>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
