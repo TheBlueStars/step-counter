@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="notif_white">#FFFFFFFF</color>
+    <color name="notif_text_primary">#FF1C1B1F</color>
+    <color name="notif_text_secondary">#FF6B6B70</color>
+    <color name="notif_progress_track">#FFEDEDF2</color>
+    <color name="notif_primary">#FFFE7C3E</color>
+    <color name="notif_primary_light">#FFFFAE88</color>
+    <color name="color_neutral_black">#FF1C1B1F</color>
+
+    <color name="widget_bar_today_top">#FFFFDCA6</color>
+    <color name="widget_bar_today_bottom">#FFFB923C</color>
+    <color name="widget_bar_goal_top">#FFB7FDB7</color>
+    <color name="widget_bar_goal_bottom">#FF22C55E</color>
+    <color name="widget_bar_mid_top">#FFD3EDFF</color>
+    <color name="widget_bar_mid_bottom">#FF3B82F6</color>
+
+    <color name="widget_bar_empty">#FFE3E3EA</color>
+    <color name="widget_bar_future">#FF9CA3AF</color>
+</resources>

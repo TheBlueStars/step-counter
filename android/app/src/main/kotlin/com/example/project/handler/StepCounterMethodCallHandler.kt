@@ -11,6 +11,7 @@ import com.example.project.preferences.StepCounterPreferences
 import com.example.project.sensor.StepSensorHub
 import com.example.project.services.StepCounterForegroundService
 import com.example.project.utils.StepTimeUtils
+import com.example.project.widget.StepWidgetUpdater
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 
@@ -172,7 +173,10 @@ class StepCounterMethodCallHandler(
     private fun dailySteps(): Map<String, Int> =
         preferences.getAllDaySteps().mapKeys { (dayStart, _) -> dayStart.toString() }
 
-    private fun notifyDataChanged() = StepCounterForegroundService.refresh(context)
+    private fun notifyDataChanged() {
+        StepCounterForegroundService.refresh(context)
+        StepWidgetUpdater.update(context, force = true)
+    }
 
     private fun MethodCall.longArg(key: String): Long? = argument<Number>(key)?.toLong()
 
