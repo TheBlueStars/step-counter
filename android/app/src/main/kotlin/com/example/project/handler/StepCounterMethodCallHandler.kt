@@ -130,6 +130,13 @@ class StepCounterMethodCallHandler(
                 ),
             )
 
+            "isIntroFinished" -> result.success(preferences.isIntroFinished)
+
+            "setIntroFinished" -> {
+                preferences.isIntroFinished = call.argument<Boolean>("value") ?: true
+                result.success(true)
+            }
+
             "getMedals" -> result.success(preferences.getMedals())
 
             "unlockMedal" -> {

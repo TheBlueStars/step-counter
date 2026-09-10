@@ -75,10 +75,6 @@ class SplashView extends GetView<SplashController> {
               },
             ),
           ),
-          Text(
-            'This action can contain ads',
-            style: TextStyles.title,
-          ),
           const SizedBox(height: 32),
         ],
       ),

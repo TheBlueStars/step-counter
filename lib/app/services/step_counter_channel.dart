@@ -161,6 +161,12 @@ class StepCounterChannel {
     };
   }
 
+  Future<bool> isIntroFinished() =>
+      _invoke("isIntroFinished", fallback: false);
+
+  Future<bool> setIntroFinished([bool value = true]) =>
+      _invoke("setIntroFinished", arguments: {"value": value}, fallback: false);
+
   Future<Map<String, DateTime>> getMedals() async {
     final raw = await _invoke<Map<Object?, Object?>>(
       "getMedals",
