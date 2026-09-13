@@ -8,10 +8,10 @@ import 'package:project/app/widgets/filter_chips_widget.dart';
 import 'package:project/generated/colors.gen.dart';
 import 'package:project/generated/text_styles.gen.dart';
 
+import '../../navigation_bar/navigation_bar_controller/navigation_bar_controller.dart';
 import '../achievement_controller/achievement_controller.dart';
 import 'components/achievement_summary_card.dart';
 import 'components/medal_grid.dart';
-import 'components/medal_reveal_dialog.dart';
 
 class AchievementView extends GetView<AchievementController> {
   const AchievementView({super.key});
@@ -87,6 +87,6 @@ class AchievementView extends GetView<AchievementController> {
       return;
     }
 
-    MedalRevealDialog.show(context, record);
+    NavigationBarController.showMedalReward(record.medal);
   }
 }

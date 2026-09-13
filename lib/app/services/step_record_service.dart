@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:get/get.dart';
 
+import '../data/models/enums/gender.dart';
 import '../data/models/enums/walking_pace.dart';
 import '../data/models/step_snapshot.dart';
 import '../extensions/date_time_extension.dart';
@@ -17,6 +18,11 @@ class StepRecordService extends GetxService {
 
   static const int defaultStepGoal = 10000;
 
+  /// Số bước tối thiểu để một ngày được tính vào chuỗi streak. Đây là mốc
+  /// riêng, không liên quan tới mục tiêu của ngày: mục tiêu dùng cho thành tích
+  /// "goal completed", còn streak chỉ cần vận động tối thiểu mỗi ngày.
+  static const int streakStepThreshold = 200;
+
   final StepCounterChannel _channel;
 
   final RxBool hasSensor = true.obs;
@@ -26,6 +32,8 @@ class StepRecordService extends GetxService {
   final RxInt lifetimeSteps = 0.obs;
   final RxDouble heightCm = 170.0.obs;
   final RxDouble weightKg = 60.0.obs;
+  final Rx<Gender> gender = Rx(Gender.none);
+  final RxInt age = 25.obs;
   final Rx<DateTime> selectedDate = DateTime.now().startOfDay.obs;
 
   final RxInt selectedSteps = 0.obs;
@@ -48,6 +56,17 @@ class StepRecordService extends GetxService {
   StreamSubscription<StepSnapshot>? _subscription;
   Timer? _dayRolloverTimer;
 
+  final StreamController<int> _streakReachedController =
+      StreamController<int>.broadcast();
+
+  /// Phát ra độ dài chuỗi streak ngay khi số bước hôm nay vừa chạm
+  /// [streakStepThreshold]. Chỉ phát đúng một lần cho mỗi lần vượt ngưỡng.
+  Stream<int> get onStreakReached => _streakReachedController.stream;
+
+  /// null nghĩa là chưa nạp dữ liệu lần nào — dùng để không bắn sự kiện ở lần
+  /// nạp đầu tiên, tránh việc mở lại app là popup nhảy ra dù đã đủ bước từ lâu.
+  bool? _todayAboveThreshold;
+
   Future<StepRecordService> init() async {
     hasSensor.value = await _channel.isSensorAvailable();
     await _loadConfig();
@@ -66,6 +85,7 @@ class StepRecordService extends GetxService {
   void onClose() {
     _subscription?.cancel();
     _dayRolloverTimer?.cancel();
+    _streakReachedController.close();
     super.onClose();
   }
 
@@ -152,14 +172,31 @@ class StepRecordService extends GetxService {
       weekStart,
       weekStart.add(const Duration(days: 6)),
     );
+    _updateTodayStreak();
+  }
+
+  /// Theo dõi riêng ngày hôm nay để biết thời điểm số bước vừa vượt ngưỡng
+  /// streak, bất kể người dùng đang xem ngày nào trên lịch.
+  void _updateTodayStreak() {
+    final reached = stepsOfDay(DateTime.now()) >= streakStepThreshold;
+    final wasReached = _todayAboveThreshold;
+    _todayAboveThreshold = reached;
+
+    if (wasReached == false && reached) {
+      _streakReachedController.add(currentStreakUntil(DateTime.now()));
+    }
   }
 
   Future<void> _loadConfig() async {
     final config = await _channel.getConfig();
-    final goal = config["goal"]?.toInt() ?? 0;
+    final goal = (config["goal"] as num?)?.toInt() ?? 0;
     _defaultGoal = goal > 0 ? goal : defaultStepGoal;
-    heightCm.value = config["heightCm"]?.toDouble() ?? heightCm.value;
-    weightKg.value = config["weightKg"]?.toDouble() ?? weightKg.value;
+    heightCm.value =
+        (config["heightCm"] as num?)?.toDouble() ?? heightCm.value;
+    weightKg.value =
+        (config["weightKg"] as num?)?.toDouble() ?? weightKg.value;
+    age.value = (config["age"] as num?)?.toInt() ?? age.value;
+    gender.value = Gender.fromName(config["gender"] as String?);
   }
 
   void _onSnapshot(StepSnapshot snapshot) {
@@ -240,7 +277,13 @@ class StepRecordService extends GetxService {
     return steps;
   }
 
-  bool isStreakDay(DateTime day) {
+  /// Ngày được tính vào chuỗi streak khi đi đủ [streakStepThreshold] bước.
+  bool isStreakDay(DateTime day) =>
+      stepsOfDay(day) >= streakStepThreshold;
+
+  /// Ngày hoàn thành mục tiêu — mốc khác với streak, dùng cho thành tích
+  /// "goal completed" và cho trạng thái cột đã đạt mục tiêu trên biểu đồ.
+  bool isGoalCompletedDay(DateTime day) {
     final goal = goalOfDay(day);
     return goal > 0 && stepsOfDay(day) >= goal;
   }
@@ -301,7 +344,8 @@ class StepRecordService extends GetxService {
   int get bestDaySteps =>
       _daySteps.values.fold<int>(0, (best, steps) => math.max(best, steps));
 
-  int get goalCompletedDays => _streakDays().length;
+  int get goalCompletedDays =>
+      _daySteps.keys.where(isGoalCompletedDay).length;
 
   double caloriesOf(int steps) =>
       StepMetricsUtils.calories(steps, heightCm.value, weightKg.value);
@@ -328,12 +372,19 @@ class StepRecordService extends GetxService {
   Future<void> updateGoal(int goal) =>
       updateGoalForDay(selectedDate.value, goal);
 
-  Future<void> updateProfile({double? height, double? weight}) async {
+  Future<void> updateProfile({
+    double? height,
+    double? weight,
+    Gender? userGender,
+    int? userAge,
+  }) async {
     await _channel.setConfig(
       heightCm: height,
       weightKg: weight,
       paceSpeedMps: pace.speedMps,
       paceMet: pace.met,
+      gender: userGender?.name,
+      age: userAge,
     );
 
     if (height != null) {
@@ -342,6 +393,14 @@ class StepRecordService extends GetxService {
 
     if (weight != null) {
       weightKg.value = weight;
+    }
+
+    if (userGender != null) {
+      gender.value = userGender;
+    }
+
+    if (userAge != null) {
+      age.value = userAge;
     }
 
     dataVersion.value++;

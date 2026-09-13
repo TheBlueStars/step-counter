@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:project/app/data/models/enums/activity_metrics.dart';
 import 'package:project/app/modules/home/home_view/components/app_bar_home.dart';
 import 'package:project/app/widgets/calendar/calendar_widget.dart';
 import 'package:project/app/widgets/default/page_default.dart';
@@ -16,7 +17,10 @@ class HomeView extends GetView<HomeController> {
     final controller = this.controller;
     return PageDefault(
       appBar: Obx(
-        () => AppBarHome(longStreak: controller.streakDays),
+        () => AppBarHome(
+          longStreak: controller.streakDays,
+          onTapShowStreak: controller.onTapShowStreak,
+        ),
       ).paddingSymmetric(vertical: 16),
       body: SingleChildScrollView(
         child: Column(
@@ -41,6 +45,14 @@ class HomeView extends GetView<HomeController> {
                 onTapEditStep: controller.onTapEditStep,
                 onTapStats: controller.goToStatistical,
                 onTapPlay: controller.onTapPlay,
+                onTapChart: () =>
+                    controller.onTapMetric(ActivityMetrics.steps),
+                onTapDashBoardTime: () =>
+                    controller.onTapMetric(ActivityMetrics.time),
+                onTapDashBoardCalories: () =>
+                    controller.onTapMetric(ActivityMetrics.calories),
+                onTapDashBoardKm: () =>
+                    controller.onTapMetric(ActivityMetrics.distance),
               ),
             ),
             SizedBox(height: 16),

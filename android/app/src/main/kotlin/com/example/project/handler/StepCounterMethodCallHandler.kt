@@ -116,6 +116,8 @@ class StepCounterMethodCallHandler(
                 call.doubleArg("weightKg")?.let { preferences.weightKg = it.toFloat() }
                 call.doubleArg("paceSpeedMps")?.let { preferences.paceSpeedMps = it.toFloat() }
                 call.doubleArg("paceMet")?.let { preferences.paceMet = it.toFloat() }
+                call.argument<String>("gender")?.let { preferences.gender = it }
+                call.intArg("age")?.let { preferences.age = it }
                 notifyDataChanged()
                 result.success(true)
             }
@@ -127,6 +129,8 @@ class StepCounterMethodCallHandler(
                     "weightKg" to preferences.weightKg.toDouble(),
                     "paceSpeedMps" to preferences.paceSpeedMps.toDouble(),
                     "paceMet" to preferences.paceMet.toDouble(),
+                    "gender" to preferences.gender,
+                    "age" to preferences.age,
                 ),
             )
 

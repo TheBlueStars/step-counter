@@ -60,6 +60,14 @@ class StepCounterPreferences(context: Context) {
         get() = prefs.getFloat(KEY_PACE_MET, StepCounterConstants.DEFAULT_PACE_MET)
         set(value) = prefs.edit { putFloat(KEY_PACE_MET, value) }
 
+    var gender: String
+        get() = prefs.getString(KEY_GENDER, "") ?: ""
+        set(value) = prefs.edit { putString(KEY_GENDER, value) }
+
+    var age: Int
+        get() = prefs.getInt(KEY_AGE, StepCounterConstants.DEFAULT_AGE)
+        set(value) = prefs.edit { putInt(KEY_AGE, value.coerceAtLeast(1)) }
+
     var isIntroFinished: Boolean
         get() = prefs.getBoolean(KEY_INTRO_FINISHED, false)
         set(value) = prefs.edit { putBoolean(KEY_INTRO_FINISHED, value) }
@@ -201,6 +209,8 @@ class StepCounterPreferences(context: Context) {
         const val KEY_PACE_MET = "profile_pace_met"
         const val KEY_LIFETIME_STEPS = "lifetime_steps"
         const val KEY_INTRO_FINISHED = "intro_finished"
+        const val KEY_GENDER = "profile_gender"
+        const val KEY_AGE = "profile_age"
         const val KEY_STEPS = "steps_"
         const val KEY_ACTIVE = "active_"
         const val KEY_DAY = "day_"

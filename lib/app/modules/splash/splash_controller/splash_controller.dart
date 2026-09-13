@@ -32,12 +32,12 @@ class SplashController extends GetxController
     super.onClose();
   }
 
-  /// Lần đầu mở app thì vào Intro, các lần sau vào thẳng màn chính.
   Future<void> _openNextScreen() async {
-    final isIntroFinished = await _channel.isIntroFinished();
+    // final isIntroFinished = await _channel.isIntroFinished();
 
-    await Get.offAllNamed(
-      isIntroFinished ? Routes.NAVIGATION_BAR : Routes.INTRO,
-    );
+    // await Get.offAllNamed(
+    //   isIntroFinished ? Routes.NAVIGATION_BAR : Routes.INTRO,
+    // );
+    Get.offAllNamed(Routes.INTRO);
   }
 }

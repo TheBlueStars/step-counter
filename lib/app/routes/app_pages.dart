@@ -6,6 +6,8 @@ import '../modules/home/home_binding/home_binding.dart';
 import '../modules/home/home_view/home_view.dart';
 import '../modules/intro/intro_binding/intro_binding.dart';
 import '../modules/intro/intro_view/intro_view.dart';
+import '../modules/onboarding/onboarding_binding/onboarding_binding.dart';
+import '../modules/onboarding/onboarding_view/onboarding_view.dart';
 import '../modules/settings/settings_binding/settings_binding.dart';
 import '../modules/settings/settings_view/settings_view.dart';
 import '../modules/splash/splash_binding/splash_binding.dart';
@@ -28,6 +30,11 @@ abstract class AppPages {
       name: _Paths.INTRO,
       page: () => const IntroView(),
       binding: IntroBinding(),
+    ),
+    GetPage(
+      name: _Paths.ONBOARDING,
+      page: () => const OnboardingView(),
+      binding: OnboardingBinding(),
     ),
     GetPage(
       name: _Paths.SPLASH,

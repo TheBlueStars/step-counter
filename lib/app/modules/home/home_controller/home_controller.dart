@@ -1,13 +1,22 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:project/app/data/models/chart_bar.dart';
 import 'package:project/app/data/models/enums/activity_metrics.dart';
 import 'package:project/app/data/models/enums/period_type.dart';
+import 'package:project/app/data/models/enums/reward_type.dart';
 import 'package:project/app/extensions/chart_bar_extension.dart';
 import 'package:project/app/extensions/date_time_extension.dart';
 import 'package:project/app/modules/home/home_view/components/edit_step_sheet_body.dart';
+import 'package:project/app/modules/home/home_view/components/streak_reward_dialog.dart';
+import 'package:project/app/modules/navigation_bar/navigation_bar_argument/navigation_bar_argument.dart';
+import 'package:project/app/modules/navigation_bar/navigation_bar_controller/navigation_bar_controller.dart';
+import 'package:project/app/modules/statistical/statistical_argument/statistical_argument.dart';
+import 'package:project/app/modules/statistical/statistical_controller/statistical_controller.dart';
 import 'package:project/app/routes/app_pages.dart';
 import 'package:project/app/services/step_record_service.dart';
+import 'package:project/app/utils/dialog_utils.dart';
 import 'package:project/app/widgets/default/bottom_sheet_default.dart';
 
 class HomeController extends GetxController {
@@ -20,6 +29,7 @@ class HomeController extends GetxController {
   final ValueNotifier<DateTime?> selectDayRequest = ValueNotifier(null);
 
   Worker? _stepWorker;
+  StreamSubscription<int>? _streakSubscription;
 
   @override
   void onInit() {
@@ -30,6 +40,8 @@ class HomeController extends GetxController {
       (_) => _notifyDayProgress(_service.selectedDate.value),
       time: const Duration(seconds: 1),
     );
+
+    _streakSubscription = _service.onStreakReached.listen(_showStreakReward);
   }
 
   @override
@@ -42,6 +54,7 @@ class HomeController extends GetxController {
 
   @override
   void onClose() {
+    _streakSubscription?.cancel();
     _stepWorker?.dispose();
     progressChangedDay.dispose();
     selectDayRequest.dispose();
@@ -54,7 +67,7 @@ class HomeController extends GetxController {
 
   int get streakDays => _service.streakDays.value;
 
-  bool get isTracking => _service.isTracking.value;
+  bool get isTracking => !_service.isPaused.value;
 
   double get calories => _service.caloriesOf(steps);
 
@@ -220,7 +233,50 @@ class HomeController extends GetxController {
   String _stepsOfDraft(EditStepDraft draft) =>
       _service.hourlyStepsForDay(draft.day)[draft.hour].toString();
 
-  void goToStatistical() => Get.toNamed(Routes.STATISTICAL);
+  /// Bật popup chúc mừng khi số bước hôm nay vừa chạm ngưỡng streak.
+  void _showStreakReward(int days) {
+    DialogUtils.showReward(
+      rewardType: RewardType.streak,
+      title: days == 1 ? "1-Day Streak! 🔥" : "$days-Days Streak! 🔥",
+    );
+  }
+
+  /// Bấm vào chip streak trên thanh tiêu đề: giải thích cách streak hoạt động.
+  void onTapShowStreak() {
+    final context = Get.context;
+    if (context == null) {
+      return;
+    }
+
+    StreakInfoDialog.show(context);
+  }
+
+  void goToStatistical() =>
+      _openStatistical(ActivityMetrics.steps, PeriodType.day);
+
+  void onTapMetric(ActivityMetrics metric) =>
+      _openStatistical(metric, PeriodType.week);
+
+  void _openStatistical(ActivityMetrics metric, PeriodType period) {
+    final argument = StatisticalArgument(
+      metric: metric,
+      period: period,
+      date: selectedDate,
+    );
+
+    final statistical = StatisticalController.liveInstance;
+    if (statistical == null) {
+      Get.toNamed(Routes.STATISTICAL, arguments: argument);
+      return;
+    }
+
+    statistical.applyArgument(argument);
+    if (Get.isRegistered<NavigationBarController>()) {
+      Get.find<NavigationBarController>().changePage(
+        NavigationPage.statistical,
+      );
+    }
+  }
 
   void _showMessage(String message) => Get.snackbar(
     "Step counter",

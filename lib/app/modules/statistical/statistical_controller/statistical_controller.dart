@@ -6,6 +6,7 @@ import 'package:project/app/data/models/summary_card_data.dart';
 import 'package:project/app/data/models/summary_statistical.dart';
 import 'package:project/app/extensions/chart_bar_extension.dart';
 import 'package:project/app/extensions/date_time_extension.dart';
+import 'package:project/app/modules/statistical/statistical_argument/statistical_argument.dart';
 import 'package:project/app/services/step_record_service.dart';
 import 'package:project/generated/assets.gen.dart';
 
@@ -15,6 +16,28 @@ class StatisticalController extends GetxController {
   final Rx<ActivityMetrics> _selectedMetric = Rx(ActivityMetrics.steps);
   final Rx<PeriodType> _period = Rx(PeriodType.day);
   final Rx<DateTime> _selectedDate = Rx(DateTime.now().startOfDay);
+
+  /// Instance đang sống (tab Statistical trong navigation bar) để màn khác mở
+  /// thẳng vào đúng chỉ số / khoảng thời gian thay vì push thêm một trang mới.
+  static StatisticalController? get liveInstance =>
+      Get.isRegistered<StatisticalController>()
+      ? Get.find<StatisticalController>()
+      : null;
+
+  @override
+  void onInit() {
+    super.onInit();
+    final arguments = Get.arguments;
+    if (arguments is StatisticalArgument) {
+      applyArgument(arguments);
+    }
+  }
+
+  void applyArgument(StatisticalArgument argument) {
+    _selectedMetric.value = argument.metric ?? ActivityMetrics.steps;
+    _period.value = argument.period ?? PeriodType.day;
+    _selectedDate.value = (argument.date ?? DateTime.now()).startOfDay;
+  }
 
   ActivityMetrics get selectedMetric => _selectedMetric.value;
 

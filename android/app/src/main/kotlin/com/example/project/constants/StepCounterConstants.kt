@@ -5,6 +5,7 @@ object StepCounterConstants {
     const val METHOD_CHANNEL = "com.example.project/step_counter"
     const val EVENT_CHANNEL = "com.example.project/step_counter/events"
 
+    const val DEFAULT_AGE = 18
     const val DEFAULT_HEIGHT_CM = 170f
     const val DEFAULT_WEIGHT_KG = 60f
     const val DEFAULT_PACE_SPEED_MPS = 1.34f

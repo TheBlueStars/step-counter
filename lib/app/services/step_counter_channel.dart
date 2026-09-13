@@ -137,6 +137,8 @@ class StepCounterChannel {
     double? weightKg,
     double? paceSpeedMps,
     double? paceMet,
+    String? gender,
+    int? age,
   }) => _invoke(
     "setConfig",
     arguments: {
@@ -145,20 +147,19 @@ class StepCounterChannel {
       if (weightKg != null) "weightKg": weightKg,
       if (paceSpeedMps != null) "paceSpeedMps": paceSpeedMps,
       if (paceMet != null) "paceMet": paceMet,
+      if (gender != null) "gender": gender,
+      if (age != null) "age": age,
     },
     fallback: false,
   );
 
-  Future<Map<String, num>> getConfig() async {
+  Future<Map<String, Object?>> getConfig() async {
     final raw = await _invoke<Map<Object?, Object?>>(
       "getConfig",
       fallback: const {},
     );
 
-    return {
-      for (final entry in raw.entries)
-        if (entry.value is num) "${entry.key}": entry.value as num,
-    };
+    return {for (final entry in raw.entries) "${entry.key}": entry.value};
   }
 
   Future<bool> isIntroFinished() =>

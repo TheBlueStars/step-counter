@@ -3,7 +3,6 @@ import 'package:project/app/data/models/enums/achievement.dart';
 import 'package:project/app/data/models/medal_record.dart';
 import 'package:project/app/widgets/default/card_default.dart';
 import 'package:project/app/widgets/scale_tap_widget.dart';
-import 'package:project/app/widgets/staggered_fade_in.dart';
 import 'package:project/generated/colors.gen.dart';
 import 'package:project/generated/text_styles.gen.dart';
 
@@ -90,14 +89,11 @@ class _MedalGridState extends State<MedalGrid> {
       itemBuilder: (context, index) {
         final item = medals[index];
         final isCurrentMedal = widget.currentMedal == item;
-        return StaggeredFadeIn(
-          index: index,
-          child: MedalCard(
-            medalRecord: item,
-            progress: widget.progress,
-            onTap: widget.onTapMedal,
-            isCurrentMedal: isCurrentMedal,
-          ),
+        return MedalCard(
+          medalRecord: item,
+          progress: widget.progress,
+          onTap: widget.onTapMedal,
+          isCurrentMedal: isCurrentMedal,
         );
       },
     );

@@ -1,9 +1,8 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:project/app/data/models/medal_record.dart';
 import 'package:project/app/extensions/date_time_extension.dart';
+import 'package:project/app/widgets/coin_flip_widget.dart';
 import 'package:project/app/widgets/scale_tap_widget.dart';
 import 'package:project/generated/colors.gen.dart';
 import 'package:project/generated/text_styles.gen.dart';
@@ -21,10 +20,8 @@ class MedalRevealDialog extends StatefulWidget {
       barrierColor: Colors.black.withValues(alpha: .55),
       transitionDuration: const Duration(milliseconds: 250),
       pageBuilder: (context, _, _) => MedalRevealDialog(record: record),
-      transitionBuilder: (context, animation, _, child) => FadeTransition(
-        opacity: animation,
-        child: child,
-      ),
+      transitionBuilder: (context, animation, _, child) =>
+          FadeTransition(opacity: animation, child: child),
     );
   }
 
@@ -32,34 +29,18 @@ class MedalRevealDialog extends StatefulWidget {
   State<MedalRevealDialog> createState() => _MedalRevealDialogState();
 }
 
-class _MedalRevealDialogState extends State<MedalRevealDialog>
-    with SingleTickerProviderStateMixin {
-  static const double _size = 180;
+class _MedalRevealDialogState extends State<MedalRevealDialog> {
+  static const double _frameWidth = 300;
+  static const double _frameHeight = 200;
 
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 900),
-  )..forward();
+  bool _isFlipped = false;
 
-  late final Animation<double> _flip = CurvedAnimation(
-    parent: _controller,
-    curve: const Interval(0, 0.7, curve: Curves.easeOutBack),
-  );
+  void _onFlipCompleted() {
+    if (!mounted) {
+      return;
+    }
 
-  late final Animation<double> _scale = CurvedAnimation(
-    parent: _controller,
-    curve: const Interval(0, 0.6, curve: Curves.elasticOut),
-  );
-
-  late final Animation<double> _contentFade = CurvedAnimation(
-    parent: _controller,
-    curve: const Interval(0.5, 1, curve: Curves.easeOut),
-  );
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+    setState(() => _isFlipped = true);
   }
 
   @override
@@ -81,8 +62,8 @@ class _MedalRevealDialogState extends State<MedalRevealDialog>
             mainAxisSize: MainAxisSize.min,
             children: [
               SizedBox(
-                width: _size * 1.4,
-                height: _size * 1.2,
+                width: _frameWidth,
+                height: _frameHeight,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
@@ -93,40 +74,17 @@ class _MedalRevealDialogState extends State<MedalRevealDialog>
                         fit: BoxFit.cover,
                       ),
                     ),
-                    AnimatedBuilder(
-                      animation: _controller,
-                      builder: (context, child) {
-                        final angle = _flip.value * math.pi;
-                        return Transform.scale(
-                          scale: _scale.value,
-                          child: Transform(
-                            alignment: Alignment.center,
-                            transform: Matrix4.identity()
-                              ..setEntry(3, 2, 0.0015)
-                              ..rotateY(angle),
-                            child: angle > math.pi / 2
-                                ? Transform(
-                                    alignment: Alignment.center,
-                                    transform: Matrix4.identity()
-                                      ..rotateY(math.pi),
-                                    child: medal.image.image(
-                                      width: _size,
-                                      height: _size,
-                                    ),
-                                  )
-                                : medal.achievement.backplateImage.image(
-                                    width: _size,
-                                    height: _size,
-                                  ),
-                          ),
-                        );
-                      },
+                    CoinFlipWidget(
+                      medalTypes: [medal],
+                      size: _frameWidth,
+                      onCompleted: _onFlipCompleted,
                     ),
                   ],
                 ),
               ),
-              FadeTransition(
-                opacity: _contentFade,
+              AnimatedOpacity(
+                opacity: _isFlipped ? 1 : 0,
+                duration: const Duration(milliseconds: 300),
                 child: Column(
                   children: [
                     TnmText.h5(medal.title).semiBold.copyWith(

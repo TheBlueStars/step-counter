@@ -132,7 +132,7 @@ class StepTrackerCard extends StatelessWidget {
         child: CustomPaint(
           painter: GaugeProgressPainter(
             progress: value,
-            color: ColorName.mainText,
+            color: ColorName.primary100,
             trackColor: ColorName.neutralLightGray,
             strokeWidth: 20,
             gradientColors: ColorName.gradientProgressPrimary.colors,

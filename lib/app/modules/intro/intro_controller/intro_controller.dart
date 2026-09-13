@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 
 import '../../../../generated/assets.gen.dart';
 import '../../../routes/app_pages.dart';
-import '../../../services/step_counter_channel.dart';
 
 class IntroPageModel {
   const IntroPageModel({
@@ -22,11 +21,6 @@ class IntroPageModel {
 
 class IntroController extends GetxController
     with GetSingleTickerProviderStateMixin {
-  IntroController({StepCounterChannel? channel})
-    : _channel = channel ?? StepCounterChannel();
-
-  final StepCounterChannel _channel;
-
   final PageController pageController = PageController();
 
   late final AnimationController animationController;
@@ -127,7 +121,8 @@ class IntroController extends GetxController
     }
 
     isFinishing.value = true;
-    await _channel.setIntroFinished();
-    await Get.offAllNamed(Routes.NAVIGATION_BAR);
+    // Cờ hoàn tất được đặt ở cuối onboarding, không đặt ở đây — nếu người dùng
+    // thoát giữa chừng thì lần mở sau vẫn phải nhập lại thông tin cơ thể.
+    await Get.offAllNamed(Routes.ONBOARDING);
   }
 }
